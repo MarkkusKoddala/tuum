@@ -11,15 +11,6 @@
 
 These instructions will get your copy of the project up and running on your local machine for development and testing purposes.
 
-### Building the Application
-
-To build the application, run the following command in the root directory of your project:
-
-```sh
-./gradlew build
-```
-
-
 ### Using Docker and Docker Compose
 
 This project includes a `docker-compose.yml` file for running the application along with its dependencies.
@@ -39,6 +30,14 @@ To stop the application and remove the containers, use:
 
 ```sh
 docker-compose down
+```
+
+### Building the Application
+
+To build the application, run the following command in the root directory of your project:
+
+```sh
+./gradlew build
 ```
 
 ## Application Configuration
