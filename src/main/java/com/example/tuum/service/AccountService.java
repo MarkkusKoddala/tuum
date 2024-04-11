@@ -4,6 +4,7 @@ import com.example.tuum.dto.CreateAccountReqDTO;
 import com.example.tuum.entity.Account;
 import com.example.tuum.enums.Currency;
 import com.example.tuum.mapper.AccountMapper;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,7 +15,6 @@ import java.util.List;
 public class AccountService {
     private final AccountMapper accountMapper;
     private final RabbitMQSenderService rabbitMQSenderService;
-
     private static final EnumSet<Currency> VALID_CURRENCIES = EnumSet.allOf(Currency.class);
 
     public AccountService(AccountMapper accountMapper, RabbitMQSenderService rabbitMQSenderService) {
@@ -23,22 +23,35 @@ public class AccountService {
     }
 
     public Account getAccountByAccountId(int accountId) {
-        return accountMapper.getAccountByAccountId(accountId);
+        Account account = accountMapper.getAccountByAccountId(accountId);
+        if (account == null){
+            throw new RuntimeException("Account not found");
+        }
+        return account;
     }
 
     @Transactional
     public Account createNewAccount(CreateAccountReqDTO reqDTO) {
         validateCurrencies(reqDTO.getCurrencyList());
-        accountMapper.insertNewAccount(reqDTO);
-
-        reqDTO.getCurrencyList().forEach(currency ->
-                accountMapper.insertNewAccountBalance(reqDTO.getAccountId(), currency, 0));
-
-        Account createdAccount = accountMapper.getAccountByAccountId(reqDTO.getAccountId());
-
-        rabbitMQSenderService.sendAccountCreated(createdAccount);
-
+        int accountId = insertNewAccount(reqDTO);
+        insertAccountBalances(reqDTO, accountId);
+        Account createdAccount = getAccountByAccountId(accountId);
+        sendAccountCreatedMessage(createdAccount);
         return createdAccount;
+    }
+
+    private int insertNewAccount(CreateAccountReqDTO reqDTO) {
+        accountMapper.insertNewAccount(reqDTO);
+        return reqDTO.getAccountId();
+    }
+
+    private void insertAccountBalances(CreateAccountReqDTO reqDTO, int accountId) {
+        reqDTO.getCurrencyList().forEach(currency ->
+                accountMapper.insertNewAccountBalance(accountId, currency, 0));
+    }
+
+    private void sendAccountCreatedMessage(Account createdAccount) {
+        rabbitMQSenderService.sendAccountCreated(createdAccount);
     }
 
     private void validateCurrencies(List<Currency> currencyList) {

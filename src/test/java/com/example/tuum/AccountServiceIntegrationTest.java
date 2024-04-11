@@ -4,18 +4,17 @@ import com.example.tuum.dto.CreateAccountReqDTO;
 import com.example.tuum.entity.Account;
 import com.example.tuum.entity.Balance;
 import com.example.tuum.enums.Currency;
-import com.example.tuum.mapper.AccountMapper;
 import com.example.tuum.service.AccountService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 @Transactional
@@ -24,28 +23,38 @@ public class AccountServiceIntegrationTest {
     @Autowired
     private AccountService accountService;
 
-    @Autowired
-    private AccountMapper accountMapper; // Assuming you want to verify DB state directly
+    private CreateAccountReqDTO reqDTO;
+
+    @BeforeEach
+    public void setup() {
+        reqDTO = new CreateAccountReqDTO();
+        reqDTO.setCustomerId(1);
+        reqDTO.setCountry("TestCountry");
+        reqDTO.setCurrencyList(List.of(Currency.EUR, Currency.USD));
+    }
 
     @Test
     public void testCreateNewAccount_Success() {
-        // Setup
-        CreateAccountReqDTO reqDTO = new CreateAccountReqDTO();
-        reqDTO.setAccountId(1);
-        reqDTO.setCustomerId(123);
-        reqDTO.setCountry("TestCountry");
-        reqDTO.setCurrencyList(Arrays.asList(Currency.EUR, Currency.USD));
+        reqDTO.setCurrencyList(List.of(Currency.EUR, Currency.USD));
 
-        // Execute
         Account createdAccount = accountService.createNewAccount(reqDTO);
 
-        // Verify
-        assertNotNull(createdAccount);
-        assertEquals(reqDTO.getAccountId(), createdAccount.getAccountId());
-        // Further assertions to validate the account details...
+        assertThat(createdAccount).isNotNull();
+        assertThat(createdAccount.getCustomerId()).isEqualTo(reqDTO.getCustomerId());
+        assertThat(createdAccount.getCountry()).isEqualTo(reqDTO.getCountry());
+        assertThat(createdAccount.getBalanceList()).hasSize(2);
 
-        // Directly verify the database state if necessary
-        List<Balance> balances = accountService.getAccountByAccountId(createdAccount.getAccountId()).getBalanceList();
-        assertEquals(2, balances.size());
+        createdAccount.getBalanceList().forEach(balance ->
+                assertThat(List.of(Currency.EUR, Currency.USD)).contains(balance.getCurrency()));
+    }
+
+    @Test
+    void getAccountByAccountId_AccountDoesNotExist() {
+        int nonExistentAccountId = 9999;
+
+        Exception exception = assertThrows(RuntimeException.class, () ->
+                accountService.getAccountByAccountId(nonExistentAccountId));
+
+        assertThat(exception.getMessage()).isEqualTo("Account not found");
     }
 }
