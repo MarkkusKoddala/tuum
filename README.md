@@ -32,7 +32,7 @@ To stop the application and remove the containers, use:
 docker-compose down
 ```
 
-*All variables, ports and etc are hardcoded and can be found in docker-compose.yml.
+** All variables, ports and etc are hardcoded and can be found in docker-compose.yml.
 
 ### Building the Application
 
@@ -41,10 +41,6 @@ To run the application, run the following command in the root directory of your 
 ```sh
 ./gradlew bootRun
 ```
-
-## Application Configuration
-
-Explain any steps needed to configure the application (e.g., environment variables, configuration files).
 
 ## Testing
 
