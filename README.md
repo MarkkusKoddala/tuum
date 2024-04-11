@@ -32,7 +32,7 @@ To stop the application and remove the containers, use:
 docker-compose down
 ```
 
-All variables, ports and etc are hardcoded and can be found in docker-compose.yml.
+*All variables, ports and etc are hardcoded and can be found in docker-compose.yml.
 
 ### Building the Application
 
