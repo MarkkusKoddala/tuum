@@ -36,10 +36,10 @@ docker-compose down
 
 ### Building the Application
 
-To build the application, run the following command in the root directory of your project:
+To run the application, run the following command in the root directory of your project:
 
 ```sh
-./gradlew build
+./gradlew bootRun
 ```
 
 ## Application Configuration
