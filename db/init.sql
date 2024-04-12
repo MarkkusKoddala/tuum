@@ -1,13 +1,10 @@
 
--- Create Accounts Table
 CREATE TABLE IF NOT EXISTS accounts (
     account_id SERIAL PRIMARY KEY,
     customer_id INTEGER NOT NULL,
     country VARCHAR(100) NOT NULL
 );
 
--- Create Balances Table
--- This allows for multiple currency balances per account
 CREATE TABLE IF NOT EXISTS balances (
     balance_id SERIAL PRIMARY KEY,
     account_id INTEGER NOT NULL,
@@ -19,7 +16,6 @@ CREATE TABLE IF NOT EXISTS balances (
     ON DELETE CASCADE
     );
 
--- Create Transactions Table
 CREATE TABLE IF NOT EXISTS transactions (
     transaction_id SERIAL PRIMARY KEY,
     account_id INTEGER NOT NULL,
